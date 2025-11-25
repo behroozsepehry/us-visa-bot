@@ -22,7 +22,7 @@ export class Bot {
 
     if (!dates || dates.length === 0) {
       log("no dates available");
-      return null;
+      return { date: null, shouldLongSleep: true };
     }
 
     // Filter dates that are better than current booked date and after minimum date
@@ -42,15 +42,15 @@ export class Bot {
 
     if (goodDates.length === 0) {
       log("no good dates found after filtering");
-      return null;
+      return { date: null, shouldLongSleep: false };
     }
 
     // Sort dates and return the earliest one
     goodDates.sort();
     const earliestDate = goodDates[0];
-    
+
     log(`found ${goodDates.length} good dates: ${goodDates.join(', ')}, using earliest: ${earliestDate}`);
-    return earliestDate;
+    return { date: earliestDate, shouldLongSleep: false };
   }
 
   async bookAppointment(sessionHeaders, date) {

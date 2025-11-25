@@ -29,32 +29,38 @@ export async function botCommand(options) {
     const sessionHeaders = await bot.initialize();
 
     while (true) {
-      const availableDate = await bot.checkAvailableDate(
+      const result = await bot.checkAvailableDate(
         sessionHeaders,
         currentBookedDate,
         minDate
       );
 
-      if (availableDate) {
-        const booked = await bot.bookAppointment(sessionHeaders, availableDate);
+      if (result.date) {
+        const booked = await bot.bookAppointment(sessionHeaders, result.date);
 
         if (booked) {
           // Update current date to the new available date
-          currentBookedDate = availableDate;
+          currentBookedDate = result.date;
 
           options = {
             ...options,
             current: currentBookedDate
           };
 
-          if (targetDate && availableDate <= targetDate) {
-            log(`Target date reached! Successfully booked appointment on ${availableDate}`);
+          if (targetDate && result.date <= targetDate) {
+            log(`Target date reached! Successfully booked appointment on ${result.date}`);
             process.exit(0);
           }
         }
       }
 
-      await sleep(config.refreshDelay);
+      // Determine sleep duration based on availability
+      if (result.shouldLongSleep) {
+        log(`No dates available from API. Sleeping for ${COOLDOWN} seconds...`);
+        await sleep(COOLDOWN);
+      } else {
+        await sleep(config.refreshDelay);
+      }
     }
   } catch (err) {
     if (isSocketHangupError(err)) {
