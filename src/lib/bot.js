@@ -21,7 +21,6 @@ export class Bot {
     );
 
     if (!dates || dates.length === 0) {
-      log("no dates available");
       return { date: null, shouldLongSleep: true };
     }
 
