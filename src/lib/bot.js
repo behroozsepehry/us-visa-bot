@@ -24,15 +24,16 @@ export class Bot {
       return { date: null, shouldLongSleep: true };
     }
 
+    dates.sort();
+    log(`earliest available date: ${dates[0]}`);
+
     // Filter dates that are better than current booked date and after minimum date
     const goodDates = dates.filter(date => {
       if (date >= currentBookedDate) {
-        log(`date ${date} is further than already booked (${currentBookedDate})`);
         return false;
       }
 
       if (minDate && date < minDate) {
-        log(`date ${date} is before minimum date (${minDate})`);
         return false;
       }
 
@@ -44,8 +45,6 @@ export class Bot {
       return { date: null, shouldLongSleep: false };
     }
 
-    // Sort dates and return the earliest one
-    goodDates.sort();
     const earliestDate = goodDates[0];
 
     log(`found ${goodDates.length} good dates: ${goodDates.join(', ')}, using earliest: ${earliestDate}`);
