@@ -5,7 +5,7 @@ export function sleep(seconds) {
 }
 
 export function log(message) {
-  console.log(`[${new Date().toISOString()}]`, message);
+  console.log(`[${new Date().toLocaleString()}]`, message);
 }
 
 export function isSocketHangupError(err) {
