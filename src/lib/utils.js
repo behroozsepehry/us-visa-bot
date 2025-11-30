@@ -18,6 +18,18 @@ export function isSocketHangupError(err) {
 }
 
 /**
+ * Format a Date object to YYYY-MM-DD string using UTC timezone
+ * @param {Date} date - Date object to format
+ * @returns {string} Date in YYYY-MM-DD format
+ */
+function formatDateUTC(date) {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
  * Normalize a date string to YYYY-MM-DD format
  * @param {string} dateStr - Date string in any format parseable by Date constructor
  * @returns {string} Date in YYYY-MM-DD format
@@ -30,9 +42,17 @@ export function normalizeDate(dateStr) {
     throw new Error(`Invalid date format: "${dateStr}". Please use YYYY-MM-DD format.`);
   }
 
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  return formatDateUTC(date);
+}
 
-  return `${year}-${month}-${day}`;
+/**
+ * Calculate a date X days before the given date
+ * @param {string} dateStr - Date in YYYY-MM-DD format
+ * @param {number} days - Number of days to subtract
+ * @returns {string} New date in YYYY-MM-DD format
+ */
+export function calculateThresholdDate(dateStr, days) {
+  const date = new Date(dateStr);
+  date.setUTCDate(date.getUTCDate() - days);
+  return formatDateUTC(date);
 }

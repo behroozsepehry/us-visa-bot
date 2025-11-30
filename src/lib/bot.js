@@ -1,5 +1,5 @@
 import { VisaHttpClient } from './client.js';
-import { log } from './utils.js';
+import { log, calculateThresholdDate } from './utils.js';
 
 export class Bot {
   constructor(config, options = {}) {
@@ -12,24 +12,6 @@ export class Bot {
   async initialize() {
     log('Initializing visa bot...');
     return await this.client.login();
-  }
-
-  /**
-   * Calculate the threshold date: X days before the current booked date
-   * @param {string} dateStr - Date in YYYY-MM-DD format
-   * @param {number} days - Number of days to subtract
-   * @returns {string} New date in YYYY-MM-DD format
-   */
-  calculateThresholdDate(dateStr, days) {
-    const date = new Date(dateStr);
-    date.setDate(date.getDate() - days);
-
-    // Format as YYYY-MM-DD
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
   }
 
   async checkAvailableDate(sessionHeaders, currentBookedDate, minDate) {
@@ -47,7 +29,7 @@ export class Bot {
     log(`earliest available date: ${dates[0]}`);
 
     // Calculate the threshold date (earliest date we'll accept)
-    const thresholdDate = this.calculateThresholdDate(
+    const thresholdDate = calculateThresholdDate(
       currentBookedDate,
       this.rescheduleMinImprovementDays
     );
