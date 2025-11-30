@@ -5,12 +5,31 @@ export class Bot {
   constructor(config, options = {}) {
     this.config = config;
     this.dryRun = options.dryRun || false;
+    this.rescheduleMinImprovementDays = config.rescheduleMinImprovementDays;
     this.client = new VisaHttpClient(this.config.countryCode, this.config.email, this.config.password);
   }
 
   async initialize() {
     log('Initializing visa bot...');
     return await this.client.login();
+  }
+
+  /**
+   * Calculate the threshold date: X days before the current booked date
+   * @param {string} dateStr - Date in YYYY-MM-DD format
+   * @param {number} days - Number of days to subtract
+   * @returns {string} New date in YYYY-MM-DD format
+   */
+  calculateThresholdDate(dateStr, days) {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() - days);
+
+    // Format as YYYY-MM-DD
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 
   async checkAvailableDate(sessionHeaders, currentBookedDate, minDate) {
@@ -27,12 +46,20 @@ export class Bot {
     dates.sort();
     log(`earliest available date: ${dates[0]}`);
 
-    // Filter dates that are better than current booked date and after minimum date
+    // Calculate the threshold date (earliest date we'll accept)
+    const thresholdDate = this.calculateThresholdDate(
+      currentBookedDate,
+      this.rescheduleMinImprovementDays
+    );
+
+    // Filter dates that meet the minimum improvement threshold and are after minimum date
     const goodDates = dates.filter(date => {
-      if (date >= currentBookedDate) {
+      // Must be at least X days earlier than current booking
+      if (date >= thresholdDate) {
         return false;
       }
 
+      // Must be after the minimum date constraint (if specified)
       if (minDate && date < minDate) {
         return false;
       }
@@ -41,7 +68,7 @@ export class Bot {
     });
 
     if (goodDates.length === 0) {
-      log("no good dates found after filtering");
+      log(`no good dates found after filtering (seeking dates before ${thresholdDate}, which is ${this.rescheduleMinImprovementDays} days before current booking ${currentBookedDate})`);
       return { date: null, shouldLongSleep: false };
     }
 

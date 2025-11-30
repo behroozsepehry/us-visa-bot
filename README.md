@@ -45,6 +45,7 @@ COUNTRY_CODE=your_country_code
 SCHEDULE_ID=your_schedule_id
 FACILITY_ID=your_facility_id
 REFRESH_DELAY=3
+RESCHEDULE_MIN_IMPROVEMENT_DAYS=45
 ```
 
 ### Finding Your Configuration Values
@@ -57,6 +58,7 @@ REFRESH_DELAY=3
 | `SCHEDULE_ID` | Your appointment schedule ID | Found in URL when rescheduling: <br>`https://ais.usvisa-info.com/en-{COUNTRY_CODE}/niv/schedule/{SCHEDULE_ID}/continue_actions` |
 | `FACILITY_ID` | Your consulate facility ID | Found in network calls when selecting dates, or inspect the date selector dropdown <br>Example: Paris = `44` |
 | `REFRESH_DELAY` | Seconds between checks | Optional, defaults to 3 seconds |
+| `RESCHEDULE_MIN_IMPROVEMENT_DAYS` | Minimum days improvement required | **Required**. Minimum number of days a new date must be earlier than your current booking to trigger a reschedule. <br>Example: `45` means only reschedule if new date is 45+ days earlier. <br>Set to `0` to reschedule for any earlier date. |
 
 ## Usage
 
@@ -99,11 +101,43 @@ The bot will:
 1. **Log in** to your account using provided credentials
 2. **Check** for available dates every few seconds
 3. **Compare** found dates against your constraints:
-   - Must be earlier than current date (`-c`)
+   - Must be at least X days earlier than current date (where X = `RESCHEDULE_MIN_IMPROVEMENT_DAYS`)
    - Must be after minimum date (`-m`) if specified
    - Will exit successfully if target date (`-t`) is reached
 4. **Book** the appointment automatically if conditions are met
 5. **Continue** monitoring until target is reached or manually stopped
+
+## Reschedule Threshold
+
+The bot requires a minimum improvement threshold to avoid wasting your limited reschedules on marginal gains.
+
+### How it works
+
+- Set `RESCHEDULE_MIN_IMPROVEMENT_DAYS` in your `.env` file
+- The bot will ONLY reschedule if the new date is at least this many days earlier
+- This applies from the very first reschedule (not just subsequent ones)
+
+### Examples
+
+**Scenario 1: Current booking is Feb 15, threshold is 45 days**
+- Jan 1 (45 days earlier) → ❌ Not accepted (need > 45 days)
+- Dec 31 (46 days earlier) → ✅ Accepted
+- Dec 15 (62 days earlier) → ✅ Accepted
+
+**Scenario 2: Current booking is Mar 20, threshold is 7 days**
+- Mar 14 (6 days earlier) → ❌ Not accepted
+- Mar 13 (7 days earlier) → ❌ Not accepted (need > 7 days)
+- Mar 12 (8 days earlier) → ✅ Accepted
+
+**Scenario 3: Threshold is 0**
+- Any date earlier than current booking → ✅ Accepted
+
+### Why use this?
+
+You typically have a limit of 7 reschedules. Using a threshold prevents wasting them on small improvements:
+- Without threshold: Could waste reschedules on 1-day improvements
+- With 45-day threshold: Only reschedule for significant improvements
+- Maximizes your chances of getting the earliest possible date
 
 ## Output Examples
 
