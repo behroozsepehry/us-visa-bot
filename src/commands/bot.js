@@ -1,12 +1,15 @@
 import { Bot } from '../lib/bot.js';
 import { getConfig } from '../lib/config.js';
-import { log, sleep, isSocketHangupError, normalizeDate } from '../lib/utils.js';
-
-const COOLDOWN = 3600; // 1 hour in seconds
+import { log, sleep, isSocketHangupError, normalizeDate, calculateFailureBackoffDelay } from '../lib/utils.js';
 
 export async function botCommand(options) {
   const config = getConfig();
   const bot = new Bot(config, { dryRun: options.dryRun });
+
+  // Initialize consecutive failure counter
+  if (options.consecutiveFailures === undefined) {
+    options.consecutiveFailures = 0;
+  }
 
   // Normalize all date inputs to YYYY-MM-DD format
   let currentBookedDate = normalizeDate(options.current);
@@ -40,6 +43,9 @@ export async function botCommand(options) {
       );
 
       if (result.date) {
+        // Reset failure counter when dates are successfully retrieved
+        options.consecutiveFailures = 0;
+
         const booked = await bot.bookAppointment(sessionHeaders, result.date);
 
         if (booked) {
@@ -60,16 +66,30 @@ export async function botCommand(options) {
 
       // Determine sleep duration based on availability
       if (result.shouldLongSleep) {
-        log(`No dates available from API. Sleeping for ${COOLDOWN} seconds...`);
-        await sleep(COOLDOWN);
+        options.consecutiveFailures++;
+        const delay = calculateFailureBackoffDelay(
+          options.consecutiveFailures,
+          config.refreshDelay,
+          config.failureBackoffMultiplier,
+          config.failureBackoffMaxDelay
+        );
+        log(`No dates available from API (failure #${options.consecutiveFailures}). Sleeping for ${delay} seconds (exponential backoff)...`);
+        await sleep(delay);
       } else {
         await sleep(config.refreshDelay);
       }
     }
   } catch (err) {
     if (isSocketHangupError(err)) {
-      log(`Socket hangup error: ${err.message}. Trying again after ${COOLDOWN} seconds...`);
-      await sleep(COOLDOWN);
+      options.consecutiveFailures++;
+      const delay = calculateFailureBackoffDelay(
+        options.consecutiveFailures,
+        config.refreshDelay,
+        config.failureBackoffMultiplier,
+        config.failureBackoffMaxDelay
+      );
+      log(`Socket hangup error: ${err.message} (failure #${options.consecutiveFailures}). Trying again after ${delay} seconds (exponential backoff)...`);
+      await sleep(delay);
     } else {
       log(`Session/authentication error: ${err.message}. Retrying immediately...`);
     }

@@ -59,6 +59,8 @@ RESCHEDULE_MIN_IMPROVEMENT_DAYS=45
 | `FACILITY_ID` | Your consulate facility ID | Found in network calls when selecting dates, or inspect the date selector dropdown <br>Example: Paris = `44` |
 | `REFRESH_DELAY` | Seconds between checks | Optional, defaults to 3 seconds |
 | `RESCHEDULE_MIN_IMPROVEMENT_DAYS` | Minimum days improvement required | **Required**. Minimum number of days a new date must be earlier than your current booking to trigger a reschedule. <br>Example: `45` means only reschedule if new date is 45+ days earlier. <br>Set to `0` to reschedule for any earlier date. |
+| `FAILURE_BACKOFF_MULTIPLIER` | Exponential backoff multiplier | **Required**. Growth factor for exponential backoff on consecutive failures. <br>Example: `2` means delays double each failure (30s → 60s → 120s → ...) <br>**Recommended range:** 1.5 to 10 |
+| `FAILURE_BACKOFF_MAX_DELAY` | Maximum failure backoff delay | **Required**. Maximum delay cap in seconds. <br>Example: `3600` caps backoff at 1 hour regardless of failure count <br>**Recommended range:** 300 to 7200 (5 minutes to 2 hours) |
 
 ## Usage
 
@@ -138,6 +140,40 @@ You typically have a limit of 7 reschedules. Using a threshold prevents wasting 
 - Without threshold: Could waste reschedules on 1-day improvements
 - With 45-day threshold: Only reschedule for significant improvements
 - Maximizes your chances of getting the earliest possible date
+
+## Exponential Failure Backoff
+
+The bot implements exponential backoff for handling errors gracefully:
+
+### How It Works
+
+- **Baseline**: Starts with your normal `REFRESH_DELAY` (e.g., 30 seconds)
+- **Growth**: Each consecutive failure multiplies the delay by `FAILURE_BACKOFF_MULTIPLIER`
+- **Maximum Cap**: Delay never exceeds `FAILURE_BACKOFF_MAX_DELAY`
+- **Auto-Reset**: Counter resets to 0 on successful API responses
+
+### When It Applies
+
+Exponential backoff is triggered by:
+1. **Network/Socket Errors**: Connection failures (ECONNRESET, ETIMEDOUT, ENOTFOUND)
+2. **No Dates Available**: When the API returns an empty date list
+
+### Configuration Example
+
+```env
+REFRESH_DELAY=30                    # Normal polling: 30 seconds
+FAILURE_BACKOFF_MULTIPLIER=2        # Double delay on each failure
+FAILURE_BACKOFF_MAX_DELAY=3600      # Cap at 1 hour maximum
+```
+
+**Delay Pattern**: 30s → 60s → 120s → 240s → 480s → 960s → 1920s → 3600s (capped)
+
+### Why This Matters
+
+- **Prevents API abuse**: Automatically backs off during outages or rate limiting
+- **Saves resources**: Reduces wasted API calls when dates aren't available
+- **Graceful recovery**: Quickly resumes normal operation when system recovers
+- **Configurable**: Tune aggressiveness based on your needs
 
 ## Output Examples
 

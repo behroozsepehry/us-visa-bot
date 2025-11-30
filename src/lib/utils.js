@@ -56,3 +56,24 @@ export function calculateThresholdDate(dateStr, days) {
   date.setUTCDate(date.getUTCDate() - days);
   return formatDateUTC(date);
 }
+
+/**
+ * Calculate exponential failure backoff delay
+ * @param {number} consecutiveFailures - Number of consecutive failures
+ * @param {number} baseDelay - Base delay in seconds (REFRESH_DELAY)
+ * @param {number} multiplier - Exponential multiplier
+ * @param {number} maxDelay - Maximum delay cap in seconds
+ * @returns {number} Delay in seconds
+ */
+export function calculateFailureBackoffDelay(consecutiveFailures, baseDelay, multiplier, maxDelay) {
+  // Calculate exponential delay: baseDelay * multiplier^failures
+  const delay = baseDelay * Math.pow(multiplier, consecutiveFailures);
+
+  // Handle Infinity or NaN from overflow
+  if (!isFinite(delay)) {
+    return maxDelay;
+  }
+
+  // Apply maximum cap
+  return Math.min(Math.round(delay), maxDelay);
+}

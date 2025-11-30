@@ -10,7 +10,9 @@ export function getConfig() {
     facilityId: process.env.FACILITY_ID,
     countryCode: process.env.COUNTRY_CODE,
     refreshDelay: Number(process.env.REFRESH_DELAY || 3),
-    rescheduleMinImprovementDays: Number(process.env.RESCHEDULE_MIN_IMPROVEMENT_DAYS)
+    rescheduleMinImprovementDays: Number(process.env.RESCHEDULE_MIN_IMPROVEMENT_DAYS),
+    failureBackoffMultiplier: Number(process.env.FAILURE_BACKOFF_MULTIPLIER),
+    failureBackoffMaxDelay: Number(process.env.FAILURE_BACKOFF_MAX_DELAY)
   };
 
   validateConfig(config);
@@ -18,7 +20,7 @@ export function getConfig() {
 }
 
 function validateConfig(config) {
-  const required = ['email', 'password', 'scheduleId', 'facilityId', 'countryCode', 'rescheduleMinImprovementDays'];
+  const required = ['email', 'password', 'scheduleId', 'facilityId', 'countryCode', 'rescheduleMinImprovementDays', 'failureBackoffMultiplier', 'failureBackoffMaxDelay'];
   // Use explicit undefined/null/empty check instead of falsy check (so 0 is valid)
   const missing = required.filter(key => config[key] === undefined || config[key] === null || config[key] === '');
 
@@ -30,6 +32,18 @@ function validateConfig(config) {
   // Validate rescheduleMinImprovementDays is a non-negative number
   if (isNaN(config.rescheduleMinImprovementDays) || config.rescheduleMinImprovementDays < 0) {
     console.error(`RESCHEDULE_MIN_IMPROVEMENT_DAYS must be a non-negative number, got: ${process.env.RESCHEDULE_MIN_IMPROVEMENT_DAYS}`);
+    process.exit(1);
+  }
+
+  // Validate failureBackoffMultiplier is a positive number
+  if (isNaN(config.failureBackoffMultiplier) || config.failureBackoffMultiplier <= 0) {
+    console.error(`FAILURE_BACKOFF_MULTIPLIER must be a positive number, got: ${process.env.FAILURE_BACKOFF_MULTIPLIER}`);
+    process.exit(1);
+  }
+
+  // Validate failureBackoffMaxDelay is a positive number
+  if (isNaN(config.failureBackoffMaxDelay) || config.failureBackoffMaxDelay <= 0) {
+    console.error(`FAILURE_BACKOFF_MAX_DELAY must be a positive number, got: ${process.env.FAILURE_BACKOFF_MAX_DELAY}`);
     process.exit(1);
   }
 }
