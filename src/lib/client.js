@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import cheerio from 'cheerio';
-import { log } from './utils.js';
+import { log, normalizeDate } from './utils.js';
 import { getBaseUri } from './config.js';
 
 // Common headers
@@ -50,7 +50,7 @@ export class VisaHttpClient {
     log(`Checking available dates at: ${url}`);
 
     return this._jsonRequest(url, headers)
-      .then(data => data.map(item => item.date));
+      .then(data => data.map(item => normalizeDate(item.date)));
   }
 
   async checkAvailableTime(headers, scheduleId, facilityId, date) {

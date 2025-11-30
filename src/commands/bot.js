@@ -1,15 +1,17 @@
 import { Bot } from '../lib/bot.js';
 import { getConfig } from '../lib/config.js';
-import { log, sleep, isSocketHangupError } from '../lib/utils.js';
+import { log, sleep, isSocketHangupError, normalizeDate } from '../lib/utils.js';
 
 const COOLDOWN = 3600; // 1 hour in seconds
 
 export async function botCommand(options) {
   const config = getConfig();
   const bot = new Bot(config, { dryRun: options.dryRun });
-  let currentBookedDate = options.current;
-  const targetDate = options.target;
-  const minDate = options.min;
+
+  // Normalize all date inputs to YYYY-MM-DD format
+  let currentBookedDate = normalizeDate(options.current);
+  const targetDate = options.target ? normalizeDate(options.target) : undefined;
+  const minDate = options.min ? normalizeDate(options.min) : undefined;
 
   log(`Initializing with current date ${currentBookedDate}`);
 
