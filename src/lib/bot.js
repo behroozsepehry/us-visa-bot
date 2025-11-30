@@ -68,7 +68,7 @@ export class Bot {
     });
 
     if (goodDates.length === 0) {
-      log(`no good dates found after filtering (seeking dates before ${thresholdDate}, which is ${this.rescheduleMinImprovementDays} days before current booking ${currentBookedDate})`);
+      log(`no good dates before threshold ${thresholdDate} (${this.rescheduleMinImprovementDays} days before ${currentBookedDate})`);
       return { date: null, shouldLongSleep: false };
     }
 

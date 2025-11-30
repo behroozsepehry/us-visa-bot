@@ -27,9 +27,6 @@ export async function botCommand(options) {
 
   log(`Minimum reschedule improvement: ${config.rescheduleMinImprovementDays} days`);
 
-  const initialThreshold = bot.calculateThresholdDate(currentBookedDate, config.rescheduleMinImprovementDays);
-  log(`Only considering dates before ${initialThreshold}`);
-
   try {
     const sessionHeaders = await bot.initialize();
 
