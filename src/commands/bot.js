@@ -42,10 +42,12 @@ export async function botCommand(options) {
         minDate
       );
 
-      if (result.date) {
-        // Reset failure counter when dates are successfully retrieved
+      // Reset failure counter on successful API response (whether we get a suitable date or not)
+      if (!result.shouldLongSleep) {
         options.consecutiveFailures = 0;
+      }
 
+      if (result.date) {
         const booked = await bot.bookAppointment(sessionHeaders, result.date);
 
         if (booked) {
