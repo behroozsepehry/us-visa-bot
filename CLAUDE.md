@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Run the bot:**
 ```bash
 npm start -- -c 2023-06-15 -t 2023-06-01 -m 2023-05-01
-npm run dev -- -c <current-date> [--target <date>] [--min <date>] [--dry-run]
+npm run dev -- -c <current-date> [--target <date>] [--min <date>] [--dry-run] [--verbose]
 ```
 
 **Required argument:**
@@ -17,6 +17,7 @@ npm run dev -- -c <current-date> [--target <date>] [--min <date>] [--dry-run]
 - `-t, --target <date>` - Target date to stop at when reached
 - `-m, --min <date>` - Minimum acceptable date (won't book earlier than this)
 - `--dry-run` - Log what would be booked without actually booking
+- `-v, --verbose` - Enable verbose logging for debugging (shows API calls, HTTP details)
 
 **Note:** Testing and linting are not currently configured (placeholders exist in package.json).
 
@@ -164,3 +165,7 @@ The [botCommand()](src/commands/bot.js) function uses recursion for retries:
 - `consecutiveFailures` counter accumulates across calls
 - Allows graceful handling of transient errors without complex loop state
 - Each iteration sleeps, then recursively calls itself to continue
+
+### Verbose Logging
+
+The `--verbose` flag shows debug logs (API URLs, cookies, HTTP status). Implementation uses module-level state in [utils.js](src/lib/utils.js) with `verboseLog()` function that checks `isVerboseMode` flag set at startup.

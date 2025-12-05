@@ -77,6 +77,8 @@ node index.js -c <current_date> [-t <target_date>] [-m <min_date>]
 | `-c` | `--current` | ✅ | Your current booked interview date (YYYY-MM-DD) |
 | `-t` | `--target` | ❌ | Target date to stop at - exits successfully when reached |
 | `-m` | `--min` | ❌ | Minimum acceptable date - skips dates before this |
+| `-v` | `--verbose` | ❌ | Enable verbose logging (shows debug details) |
+| | `--dry-run` | ❌ | Log what would be booked without actually booking |
 
 ### Examples
 
@@ -93,6 +95,12 @@ node index.js -c 2023-06-15 -m 2023-05-01
 # With both constraints - only book between May 1st and June 1st
 node index.js -c 2023-06-15 -t 2023-06-01 -m 2023-05-01
 
+# Enable verbose logging to see detailed debug information
+node index.js -c 2023-06-15 --verbose
+
+# Dry-run with verbose logging
+node index.js -c 2023-06-15 --dry-run --verbose
+
 # Get help
 node index.js --help
 ```
@@ -108,6 +116,12 @@ The bot will:
    - Will exit successfully if target date (`-t`) is reached
 4. **Book** the appointment automatically if conditions are met
 5. **Continue** monitoring until target is reached or manually stopped
+
+## Verbose Mode
+
+Add `--verbose` or `-v` to see detailed debug logs (API URLs, HTTP requests/responses, cookies).
+
+Default mode shows only important events: configuration, bookings, errors, and date checks.
 
 ## Reschedule Threshold
 
