@@ -4,8 +4,41 @@ export function sleep(seconds) {
   });
 }
 
+/**
+ * Format a log message with timestamp prefix
+ * @param {string} message - The message to format
+ * @returns {string} Formatted message with timestamp
+ */
+function formatLogMessage(message) {
+  return `[${new Date().toLocaleString()}] ${message}`;
+}
+
 export function log(message) {
-  console.log(`[${new Date().toLocaleString()}]`, message);
+  console.log(formatLogMessage(message));
+}
+
+/**
+ * Module-level state for verbose logging mode.
+ * Set via setVerboseMode() at application startup.
+ */
+let isVerboseMode = false;
+
+/**
+ * Enable or disable verbose logging mode globally.
+ * @param {boolean} verbose - Whether to enable verbose logging
+ */
+export function setVerboseMode(verbose) {
+  isVerboseMode = Boolean(verbose);
+}
+
+/**
+ * Log a message only when verbose mode is enabled.
+ * @param {string} message - The message to log
+ */
+export function verboseLog(message) {
+  if (isVerboseMode) {
+    console.log(formatLogMessage(message));
+  }
 }
 
 export function isSocketHangupError(err) {

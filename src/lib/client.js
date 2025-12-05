@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import cheerio from 'cheerio';
-import { log, normalizeDate } from './utils.js';
+import { log, normalizeDate, verboseLog } from './utils.js';
 import { getBaseUri } from './config.js';
 
 // Common headers
@@ -47,7 +47,7 @@ export class VisaHttpClient {
 
   async checkAvailableDate(headers, scheduleId, facilityId) {
     const url = `${this.baseUri}/schedule/${scheduleId}/appointment/days/${facilityId}.json?appointments[expedite]=false`;
-    log(`Checking available dates at: ${url}`);
+    verboseLog(`Checking available dates at: ${url}`);
 
     return this._jsonRequest(url, headers)
       .then(data => data.map(item => normalizeDate(item.date)));
@@ -96,7 +96,7 @@ export class VisaHttpClient {
   }
 
   async _jsonRequest(url, headers = {}) {
-    log(`Making JSON request with cookie: ${headers.Cookie ? headers.Cookie.substring(0, 50) + '...' : 'NO COOKIE'}`);
+    verboseLog(`Making JSON request with cookie: ${headers.Cookie ? headers.Cookie.substring(0, 50) + '...' : 'NO COOKIE'}`);
 
     const response = await fetch(url, {
       headers: {
@@ -107,7 +107,7 @@ export class VisaHttpClient {
       cache: "no-store"
     });
 
-    log(`JSON request to ${url} returned status: ${response.status}`);
+    verboseLog(`JSON request to ${url} returned status: ${response.status}`);
 
     const text = await response.text();
 

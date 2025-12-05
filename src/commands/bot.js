@@ -1,9 +1,13 @@
 import { Bot } from '../lib/bot.js';
 import { getConfig } from '../lib/config.js';
-import { log, sleep, isSocketHangupError, normalizeDate, calculateFailureBackoffDelay } from '../lib/utils.js';
+import { log, sleep, isSocketHangupError, normalizeDate, calculateFailureBackoffDelay, setVerboseMode } from '../lib/utils.js';
 
 export async function botCommand(options) {
   const config = getConfig();
+
+  // Initialize verbose mode
+  setVerboseMode(options.verbose || false);
+
   const bot = new Bot(config, { dryRun: options.dryRun });
 
   // Initialize consecutive failure counter

@@ -15,6 +15,7 @@ program
   .option('-t, --target <date>', 'target date to stop at')
   .option('-m, --min <date>', 'minimum date acceptable')
   .option('--dry-run', 'only log what would be booked without actually booking')
+  .option('-v, --verbose', 'enable verbose logging for debugging')
   .action(botCommand);
 
 // Default command for backward compatibility
@@ -23,6 +24,7 @@ program
   .option('-t, --target <date>', 'target date to stop at')
   .option('-m, --min <date>', 'minimum date acceptable')
   .option('--dry-run', 'only log what would be booked without actually booking')
+  .option('-v, --verbose', 'enable verbose logging for debugging')
   .action(botCommand);
 
 program.parse();
